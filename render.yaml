@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: intellicash-api
+    name: intelli-cash-api
     runtime: node
     plan: starter
     rootDir: .
@@ -20,9 +20,9 @@ services:
       - key: DATABASE_URL
         value: file:/var/data/intellicash.db
       - key: API_PUBLIC_URL
-        value: https://intellicash-api.onrender.com
+        value: https://intelli-cash-api.onrender.com
       - key: WEB_ORIGIN
-        value: https://intellicash-web.onrender.com
+        value: https://intelli-cash.onrender.com,https://intellicash-web.onrender.com
       - key: SESSION_SECRET
         generateValue: true
       - key: ALLOW_SANDBOX_NETWORK_TESTS
@@ -43,7 +43,7 @@ services:
         sync: false
 
   - type: web
-    name: intellicash-web
+    name: intelli-cash
     runtime: node
     plan: free
     rootDir: .
@@ -55,6 +55,6 @@ services:
       - key: NODE_ENV
         value: production
       - key: NEXT_PUBLIC_API_BASE_URL
-        value: https://intellicash-api.onrender.com/api/v1
+        value: https://intelli-cash-api.onrender.com/api/v1
       - key: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
         sync: false

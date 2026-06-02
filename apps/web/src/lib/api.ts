@@ -1,5 +1,25 @@
-export const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:4000/api/v1";
+const LOCAL_API_BASE_URL = "http://localhost:4000/api/v1";
+const RENDER_API_BASE_URL = "https://intelli-cash-api.onrender.com/api/v1";
+
+function normalizeApiBaseUrl(value: string) {
+  return value.replace(/\/$/, "");
+}
+
+function isLocalHost(hostname: string) {
+  return hostname === "localhost" || hostname === "127.0.0.1";
+}
+
+function fallbackApiBaseUrl() {
+  if (typeof window !== "undefined") {
+    return isLocalHost(window.location.hostname) ? LOCAL_API_BASE_URL : RENDER_API_BASE_URL;
+  }
+
+  return LOCAL_API_BASE_URL;
+}
+
+export const API_BASE_URL = normalizeApiBaseUrl(
+  process.env.NEXT_PUBLIC_API_BASE_URL ?? fallbackApiBaseUrl()
+);
 
 export class ApiClientError extends Error {
   status: number;
