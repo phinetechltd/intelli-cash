@@ -31,6 +31,12 @@ services:
         value: false
       - key: INTELLIAUDIT_LLM_PROVIDER
         value: disabled
+      - key: INTELLIAUDIT_LLM_BASE_URL
+        sync: false
+      - key: INTELLIAUDIT_LLM_API_KEY
+        sync: false
+      - key: INTELLIAUDIT_LLM_MODEL
+        sync: false
       - key: INTELLIAUDIT_ENABLE_CONNECTOR_NETWORK_CALLS
         value: false
       - key: GOOGLE_MAPS_BROWSER_API_KEY
@@ -40,6 +46,58 @@ services:
       - key: AFRICASTALKING_API_KEY
         sync: false
       - key: AFRICASTALKING_SENDER_ID
+        sync: false
+      - key: BONGA_SMS_CLIENT_ID
+        sync: false
+      - key: BONGA_SMS_API_KEY
+        sync: false
+      - key: BONGA_SMS_API_SECRET
+        sync: false
+      - key: MPESA_CONSUMER_KEY
+        sync: false
+      - key: MPESA_CONSUMER_SECRET
+        sync: false
+      - key: MPESA_SHORTCODE
+        sync: false
+      - key: MPESA_PASSKEY
+        sync: false
+      - key: MPESA_CALLBACK_URL
+        value: https://intelli-cash-api.onrender.com/api/v1/payments/mpesa/stk-callback
+      - key: MPESA_INITIATOR_NAME
+        sync: false
+      - key: MPESA_SECURITY_CREDENTIAL
+        sync: false
+      - key: MPESA_B2C_RESULT_URL
+        value: https://intelli-cash-api.onrender.com/api/v1/payments/mpesa/b2c-result
+      - key: MPESA_B2C_TIMEOUT_URL
+        value: https://intelli-cash-api.onrender.com/api/v1/payments/mpesa/b2c-timeout
+      - key: PAYSTACK_SECRET_KEY
+        sync: false
+      - key: PAYSTACK_PUBLIC_KEY
+        sync: false
+      - key: IPRS_BASE_URL
+        sync: false
+      - key: IPRS_CLIENT_ID
+        sync: false
+      - key: IPRS_CLIENT_SECRET
+        sync: false
+      - key: KCB_BUNI_BASE_URL
+        sync: false
+      - key: KCB_BUNI_CLIENT_ID
+        sync: false
+      - key: KCB_BUNI_CLIENT_SECRET
+        sync: false
+      - key: KCB_BUNI_CALLBACK_URL
+        value: https://intelli-cash-api.onrender.com/api/v1/integrations/kcb-buni/callback
+      - key: TRANSUNION_BASE_URL
+        sync: false
+      - key: TRANSUNION_CLIENT_ID
+        sync: false
+      - key: TRANSUNION_CLIENT_SECRET
+        sync: false
+      - key: MFARM_BASE_URL
+        sync: false
+      - key: MFARM_API_KEY
         sync: false
 
   - type: web
