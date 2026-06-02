@@ -4,8 +4,8 @@ services:
     runtime: node
     plan: starter
     rootDir: .
-    buildCommand: npm install && npm run db:generate && npm run build -w @intellicash/api
-    startCommand: npm run db:push:env -w @intellicash/api && npm run start -w @intellicash/api
+    buildCommand: npm install && npm run db:generate && npm run build:api
+    startCommand: npm run start:api
     initialDeployHook: npm run db:seed:env -w @intellicash/api
     healthCheckPath: /health
     disk:
@@ -47,8 +47,8 @@ services:
     runtime: node
     plan: free
     rootDir: .
-    buildCommand: npm install && npm run build -w @intellicash/web
-    startCommand: npm run start -w @intellicash/web
+    buildCommand: npm install && npm run build:web
+    startCommand: npm run start:web
     envVars:
       - key: NODE_VERSION
         value: 22.12.0

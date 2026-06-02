@@ -12,7 +12,12 @@
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev -w @intellicash/api\" \"npm run dev -w @intellicash/web\"",
+    "start": "npm run start:web",
+    "start:web": "npm run start -w @intellicash/web",
+    "start:api": "npm run db:push:env -w @intellicash/api && npm run start -w @intellicash/api",
     "build": "npm run build -ws --if-present",
+    "build:web": "npm run build -w @intellicash/web",
+    "build:api": "npm run build -w @intellicash/api",
     "typecheck": "npm run typecheck -ws --if-present",
     "lint": "npm run lint -ws --if-present",
     "test": "npm run test -ws --if-present",
