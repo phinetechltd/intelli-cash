@@ -34,7 +34,7 @@ function isAllowedCorsOrigin(origin: string) {
   return isConfiguredOrigin || isLocalDevOrigin;
 }
 
-export function createApp() {
+export function createApp(options: { includeNotFoundHandler?: boolean } = {}) {
   const app = express();
   ensureUploadDirectory();
 
@@ -77,9 +77,11 @@ export function createApp() {
   app.use("/api/v1", paymentsRouter);
   app.use("/api/v1", webhooksRouter);
 
-  app.use((_req, _res, next) => {
-    next(new ApiHttpError(404, "NOT_FOUND", "Route not found."));
-  });
+  if (options.includeNotFoundHandler ?? true) {
+    app.use((_req, _res, next) => {
+      next(new ApiHttpError(404, "NOT_FOUND", "Route not found."));
+    });
+  }
 
   app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
     if (error instanceof ZodError) {

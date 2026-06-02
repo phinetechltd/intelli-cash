@@ -16,6 +16,7 @@
     "db:reset": "cross-env DATABASE_URL=file:./dev.db tsx prisma/ensure-schema.ts --force && npm run db:seed",
     "db:seed": "cross-env DATABASE_URL=file:./dev.db tsx prisma/seed.ts",
     "db:seed:env": "tsx prisma/seed.ts",
+    "db:seed:if-empty": "tsx prisma/seed-if-empty.ts",
     "import:ftma": "cross-env DATABASE_URL=file:./dev.db tsx prisma/import-ftma-workbook.ts"
   },
   "dependencies": {

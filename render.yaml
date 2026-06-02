@@ -106,13 +106,31 @@ services:
     plan: free
     rootDir: .
     buildCommand: npm install --include=dev && npm run build:web
-    startCommand: npm run start:web
+    startCommand: npm start
     envVars:
       - key: NODE_VERSION
         value: 22.12.0
       - key: NODE_ENV
         value: production
+      - key: DATABASE_URL
+        value: file:/tmp/intellicash.db
+      - key: API_PUBLIC_URL
+        value: https://intelli-cash.onrender.com
+      - key: WEB_ORIGIN
+        value: https://intelli-cash.onrender.com
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ALLOW_SANDBOX_NETWORK_TESTS
+        value: false
+      - key: ENABLE_PAYMENT_NETWORK_CALLS
+        value: false
+      - key: INTELLIAUDIT_LLM_PROVIDER
+        value: disabled
+      - key: INTELLIAUDIT_ENABLE_CONNECTOR_NETWORK_CALLS
+        value: false
+      - key: GOOGLE_MAPS_BROWSER_API_KEY
+        sync: false
       - key: NEXT_PUBLIC_API_BASE_URL
-        value: https://intelli-cash-api.onrender.com/api/v1
+        value: /api/v1
       - key: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
         sync: false

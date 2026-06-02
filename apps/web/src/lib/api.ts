@@ -1,5 +1,4 @@
 const LOCAL_API_BASE_URL = "http://localhost:4000/api/v1";
-const RENDER_API_BASE_URL = "https://intelli-cash-api.onrender.com/api/v1";
 
 function normalizeApiBaseUrl(value: string) {
   return value.replace(/\/$/, "");
@@ -11,7 +10,7 @@ function isLocalHost(hostname: string) {
 
 function fallbackApiBaseUrl() {
   if (typeof window !== "undefined") {
-    return isLocalHost(window.location.hostname) ? LOCAL_API_BASE_URL : RENDER_API_BASE_URL;
+    return isLocalHost(window.location.hostname) ? LOCAL_API_BASE_URL : `${window.location.origin}/api/v1`;
   }
 
   return LOCAL_API_BASE_URL;

@@ -12,7 +12,8 @@
   ],
   "scripts": {
     "dev": "concurrently \"npm run dev -w @intellicash/api\" \"npm run dev -w @intellicash/web\"",
-    "start": "npm run start:web",
+    "start": "npm run start:render",
+    "start:render": "npm run db:push:env -w @intellicash/api && npm run db:seed:if-empty -w @intellicash/api && tsx scripts/render-server.ts",
     "start:web": "npm run start -w @intellicash/web",
     "start:api": "npm run db:push:env -w @intellicash/api && npm run start -w @intellicash/api",
     "build": "npm run build -ws --if-present",
