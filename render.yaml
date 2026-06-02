@@ -4,7 +4,7 @@ services:
     runtime: node
     plan: starter
     rootDir: .
-    buildCommand: npm install && npm run db:generate && npm run build:api
+    buildCommand: npm install --include=dev && npm run db:generate && npm run build:api
     startCommand: npm run start:api
     initialDeployHook: npm run db:seed:env -w @intellicash/api
     healthCheckPath: /health
@@ -105,7 +105,7 @@ services:
     runtime: node
     plan: free
     rootDir: .
-    buildCommand: npm install && npm run build:web
+    buildCommand: npm install --include=dev && npm run build:web
     startCommand: npm run start:web
     envVars:
       - key: NODE_VERSION
