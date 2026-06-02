@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "types": ["node", "vitest/globals"],
+    "noEmit": true,
+    "baseUrl": "."
+  },
+  "include": ["src/**/*.ts", "prisma/**/*.ts", "tests/**/*.ts", "vitest.config.ts"]
+}

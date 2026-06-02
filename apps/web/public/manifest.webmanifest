@@ -1,0 +1,73 @@
+{
+  "name": "Intelli-Cash Group Account",
+  "short_name": "Group Account",
+  "description": "Installable Intelli-Cash workspace for group account champions managing meetings, members, records, requests, and reports.",
+  "id": "/dashboard?app=group-account",
+  "start_url": "/dashboard?app=group-account",
+  "scope": "/dashboard",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone", "minimal-ui"],
+  "orientation": "portrait",
+  "theme_color": "#1f7a36",
+  "background_color": "#f7faf8",
+  "categories": ["finance", "business", "productivity"],
+  "icons": [
+    {
+      "src": "/pwa/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/pwa/icon-maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshots/member-dashboard.png",
+      "sizes": "1440x1100",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Group account dashboard"
+    },
+    {
+      "src": "/screenshots/member-meetings.png",
+      "sizes": "1440x1100",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Meetings calendar"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Meetings",
+      "short_name": "Meetings",
+      "description": "Open group meetings",
+      "url": "/dashboard/meetings",
+      "icons": [{ "src": "/pwa/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Intelli-Store",
+      "short_name": "Store",
+      "description": "Open group equipment and service requests",
+      "url": "/dashboard/intelli-store",
+      "icons": [{ "src": "/pwa/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Reports",
+      "short_name": "Reports",
+      "description": "Open group reports",
+      "url": "/dashboard/reports",
+      "icons": [{ "src": "/pwa/icon-192.png", "sizes": "192x192" }]
+    }
+  ]
+}

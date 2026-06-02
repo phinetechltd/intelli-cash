@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="160" height="160" viewBox="0 0 160 160" role="img" aria-labelledby="title desc">
+  <title id="title">Default avatar placeholder</title>
+  <desc id="desc">Neutral avatar shown when a user photo is missing.</desc>
+  <rect width="160" height="160" rx="80" fill="#f1f5f0"/>
+  <rect x="1" y="1" width="158" height="158" rx="79" fill="none" stroke="#d5dfd6" stroke-width="2"/>
+  <g fill="#8a978c">
+    <circle cx="80" cy="62" r="26"/>
+    <path d="M36 132c7-28 24-44 44-44s37 16 44 44H36z"/>
+  </g>
+</svg>

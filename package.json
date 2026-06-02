@@ -1,0 +1,29 @@
+{
+  "name": "intellicash-platform",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Intellicash web/API foundation for VSLA digitisation.",
+  "engines": {
+    "node": ">=22.12.0 <26.0.0"
+  },
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev": "concurrently \"npm run dev -w @intellicash/api\" \"npm run dev -w @intellicash/web\"",
+    "build": "npm run build -ws --if-present",
+    "typecheck": "npm run typecheck -ws --if-present",
+    "lint": "npm run lint -ws --if-present",
+    "test": "npm run test -ws --if-present",
+    "db:generate": "npm run db:generate -w @intellicash/api",
+    "db:push": "npm run db:push -w @intellicash/api",
+    "db:seed": "npm run db:seed -w @intellicash/api",
+    "setup": "npm install && npm run db:push && npm run db:seed",
+    "postinstall": "npm run db:generate -w @intellicash/api"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2",
+    "typescript": "^5.7.3"
+  }
+}

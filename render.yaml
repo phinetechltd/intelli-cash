@@ -1,0 +1,60 @@
+services:
+  - type: web
+    name: intellicash-api
+    runtime: node
+    plan: starter
+    rootDir: .
+    buildCommand: npm install && npm run db:generate && npm run build -w @intellicash/api
+    startCommand: npm run db:push:env -w @intellicash/api && npm run start -w @intellicash/api
+    initialDeployHook: npm run db:seed:env -w @intellicash/api
+    healthCheckPath: /health
+    disk:
+      name: intellicash-data
+      mountPath: /var/data
+      sizeGB: 1
+    envVars:
+      - key: NODE_VERSION
+        value: 22.12.0
+      - key: NODE_ENV
+        value: production
+      - key: DATABASE_URL
+        value: file:/var/data/intellicash.db
+      - key: API_PUBLIC_URL
+        value: https://intellicash-api.onrender.com
+      - key: WEB_ORIGIN
+        value: https://intellicash-web.onrender.com
+      - key: SESSION_SECRET
+        generateValue: true
+      - key: ALLOW_SANDBOX_NETWORK_TESTS
+        value: false
+      - key: ENABLE_PAYMENT_NETWORK_CALLS
+        value: false
+      - key: INTELLIAUDIT_LLM_PROVIDER
+        value: disabled
+      - key: INTELLIAUDIT_ENABLE_CONNECTOR_NETWORK_CALLS
+        value: false
+      - key: GOOGLE_MAPS_BROWSER_API_KEY
+        sync: false
+      - key: AFRICASTALKING_USERNAME
+        sync: false
+      - key: AFRICASTALKING_API_KEY
+        sync: false
+      - key: AFRICASTALKING_SENDER_ID
+        sync: false
+
+  - type: web
+    name: intellicash-web
+    runtime: node
+    plan: free
+    rootDir: .
+    buildCommand: npm install && npm run build -w @intellicash/web
+    startCommand: npm run start -w @intellicash/web
+    envVars:
+      - key: NODE_VERSION
+        value: 22.12.0
+      - key: NODE_ENV
+        value: production
+      - key: NEXT_PUBLIC_API_BASE_URL
+        value: https://intellicash-api.onrender.com/api/v1
+      - key: NEXT_PUBLIC_GOOGLE_MAPS_API_KEY
+        sync: false

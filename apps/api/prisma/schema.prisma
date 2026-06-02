@@ -1,0 +1,1087 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String   @id @default(cuid())
+  name         String
+  email        String   @unique
+  passwordHash String
+  role         String
+  status       String   @default("ACTIVE")
+  avatarUrl    String?
+  languagePreference String @default("ENGLISH")
+  partnerId    String?
+  groupId      String?
+  memberId     String?  @unique
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  partner             Partner?               @relation(fields: [partnerId], references: [id])
+  group               Group?                 @relation(fields: [groupId], references: [id])
+  member              Member?                @relation(fields: [memberId], references: [id])
+  sessions            Session[]
+  apiKeys             ApiKey[]
+  notifications       Notification[]
+  auditEvents         AuditEvent[]
+  capturedMeetingKeys MeetingKeySubmission[] @relation("MeetingKeyCapturedBy")
+  storeCreditRequests StoreCreditRequest[]   @relation("StoreCreditRequester")
+  offlineDevices      OfflineDevice[]
+}
+
+model Notification {
+  id        String    @id @default(cuid())
+  userId    String
+  title     String
+  body      String
+  type      String    @default("INFO")
+  href      String?
+  readAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, readAt, createdAt])
+}
+
+model Session {
+  id         String    @id @default(cuid())
+  userId     String
+  tokenHash  String    @unique
+  expiresAt  DateTime
+  createdAt  DateTime  @default(now())
+  lastUsedAt DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ApiKey {
+  id         String    @id @default(cuid())
+  userId     String
+  name       String
+  tokenHash  String    @unique
+  scopesJson String
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+  revokedAt  DateTime?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RolePermissionTemplate {
+  id              String   @id @default(cuid())
+  role            String   @unique
+  permissionsJson String
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model Partner {
+  id               String   @id @default(cuid())
+  name             String
+  type             String
+  status           String   @default("ACTIVE")
+  apiScope         String   @default("PROGRAMME")
+  county           String?
+  contactName      String?
+  contactPhone     String?
+  valueProposition String?
+  capacity         String?
+  linkageType      String?
+  sourceSystem     String?
+  sourceReference  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  users                       User[]
+  wallet                      PartnerWallet?
+  signupRequests              PartnerSignupRequest[]
+  programmes                  Programme[]
+  programmeLinks              ProgrammePartner[]
+  walletTransactions          PartnerWalletTransaction[]
+  webhookSubscriptions        WebhookSubscription[]
+  storeFinancedCreditRequests StoreCreditRequest[]       @relation("StoreCreditFinancier")
+}
+
+model Programme {
+  id               String    @id @default(cuid())
+  partnerId        String
+  name             String
+  country          String    @default("Kenya")
+  county           String?
+  description      String?
+  coverImageUrl    String?
+  sourceSystem     String?
+  sourceReference  String?
+  publicSlug       String?   @unique
+  publicStatus     String    @default("DRAFT")
+  fundingGoalCents Int       @default(0)
+  fundingSummary   String?
+  impactSummary    String?
+  fundingDeadline  DateTime?
+  allowInvestments Boolean   @default(true)
+  allowDonations   Boolean   @default(true)
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  partner              Partner                    @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  partnerLinks         ProgrammePartner[]
+  groupLinks           ProgrammeGroup[]
+  groups               Group[]
+  villageAgents        VillageAgent[]
+  walletTransactions   PartnerWalletTransaction[]
+  assets               ProgrammeAsset[]
+  storeProductLinks    StoreProductProgramme[]
+  storeCreditRequests  StoreCreditRequest[]
+  agentBookingRequests AgentBookingRequest[]
+}
+
+model ProgrammeAsset {
+  id          String   @id @default(cuid())
+  programmeId String
+  type        String
+  visibility  String   @default("PRIVATE")
+  title       String
+  description String?
+  url         String
+  fileName    String?
+  mimeType    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  programme Programme @relation(fields: [programmeId], references: [id], onDelete: Cascade)
+}
+
+model PartnerSignupRequest {
+  id                   String    @id @default(cuid())
+  organizationName     String
+  organizationType     String
+  requestedRole        String    @default("PARTNER_OFFICER")
+  requestedPartnerType String    @default("NGO")
+  contactName          String
+  contactEmail         String
+  contactPhone         String?
+  county               String?
+  groupSubCounty       String?
+  groupLocation        String?
+  groupMeetingDay      String?
+  groupObjective       String?
+  estimatedMembers     Int?
+  championRole         String?
+  assignedVillageAgentId String?
+  fieldVisitStatus     String    @default("NOT_REQUIRED")
+  fieldVisitNotes      String?
+  fieldVisitScheduledAt DateTime?
+  fieldVisitedAt       DateTime?
+  fieldVisitReviewedByUserId String?
+  valueProposition     String?
+  status               String    @default("PENDING")
+  reviewNotes          String?
+  reviewedByUserId     String?
+  reviewedAt           DateTime?
+  createdPartnerId     String?
+  createdGroupId       String?
+  createdMemberId      String?
+  createdUserId        String?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  createdPartner Partner? @relation(fields: [createdPartnerId], references: [id], onDelete: SetNull)
+  assignedVillageAgent VillageAgent? @relation("SignupFieldAgent", fields: [assignedVillageAgentId], references: [id], onDelete: SetNull)
+}
+
+model PartnerWallet {
+  id           String   @id @default(cuid())
+  partnerId    String   @unique
+  balanceCents Int      @default(0)
+  heldCents    Int      @default(0)
+  currency     String   @default("KES")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  partner      Partner                    @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+  transactions PartnerWalletTransaction[]
+}
+
+model PartnerWalletTransaction {
+  id                    String    @id @default(cuid())
+  walletId              String?
+  partnerId             String?
+  programmeId           String?
+  actorUserId           String?
+  approvedByUserId      String?
+  type                  String
+  provider              String
+  source                String    @default("WALLET")
+  status                String    @default("PENDING")
+  amountCents           Int
+  currency              String    @default("KES")
+  description           String?
+  customerName          String?
+  customerEmail         String?
+  phoneNumber           String?
+  payoutPhoneNumber     String?
+  payoutRecipientCode   String?
+  providerReference     String?   @unique
+  internalReference     String    @unique
+  providerCheckoutUrl   String?
+  providerAccessCode    String?
+  providerTransactionId String?
+  providerMetadataJson  String?
+  failureReason         String?
+  approvedAt            DateTime?
+  completedAt           DateTime?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+
+  wallet    PartnerWallet? @relation(fields: [walletId], references: [id], onDelete: SetNull)
+  partner   Partner?       @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+  programme Programme?     @relation(fields: [programmeId], references: [id], onDelete: SetNull)
+}
+
+model PaymentWebhookEvent {
+  id             String   @id @default(cuid())
+  provider       String
+  eventId        String?  @unique
+  reference      String?
+  signatureValid Boolean  @default(false)
+  payloadJson    String
+  processed      Boolean  @default(false)
+  createdAt      DateTime @default(now())
+}
+
+model ProgrammePartner {
+  id          String   @id @default(cuid())
+  programmeId String
+  partnerId   String
+  role        String   @default("PARTNER")
+  createdAt   DateTime @default(now())
+
+  programme Programme @relation(fields: [programmeId], references: [id], onDelete: Cascade)
+  partner   Partner   @relation(fields: [partnerId], references: [id], onDelete: Cascade)
+
+  @@unique([programmeId, partnerId, role])
+}
+
+model ProgrammeGroup {
+  id          String   @id @default(cuid())
+  programmeId String
+  groupId     String
+  role        String   @default("PRIMARY")
+  createdAt   DateTime @default(now())
+
+  programme Programme @relation(fields: [programmeId], references: [id], onDelete: Cascade)
+  group     Group     @relation(fields: [groupId], references: [id], onDelete: Cascade)
+
+  @@unique([programmeId, groupId])
+}
+
+model VillageAgent {
+  id                   String   @id @default(cuid())
+  programmeId          String?
+  name                 String
+  phone                String
+  email                String?
+  gender               String?
+  projectOfficer       String?
+  county               String?
+  location             String?
+  feedback             String?
+  sourceSystem         String?
+  sourceReference      String?
+  status               String   @default("ACTIVE")
+  digitalLiteracyScore Int      @default(80)
+  caseloadLimit        Int      @default(25)
+  createdAt            DateTime @default(now())
+  updatedAt            DateTime @updatedAt
+
+  programme                Programme?                   @relation(fields: [programmeId], references: [id])
+  groups                   Group[]
+  bookingRequests          AgentBookingRequest[]
+  signupRequests           PartnerSignupRequest[]      @relation("SignupFieldAgent")
+  storeCreditDistributions StoreCreditRequest[]         @relation("StoreCreditDistributor")
+  storeProductProgrammes   StoreProductProgrammeAgent[]
+}
+
+model StoreSupplier {
+  id           String   @id @default(cuid())
+  name         String
+  status       String   @default("ACTIVE")
+  contactName  String?
+  contactPhone String?
+  contactEmail String?
+  county       String?
+  location     String?
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  products StoreProduct[]
+}
+
+model StoreProduct {
+  id                String   @id @default(cuid())
+  name              String
+  slug              String   @unique
+  category          String
+  status            String   @default("ACTIVE")
+  supplierId        String?
+  description       String
+  imageUrl          String?
+  sellerName        String?
+  priceCents        Int
+  depositCents      Int      @default(0)
+  currency          String   @default("KES")
+  creditSummary     String?
+  fulfilmentSummary String?
+  inventoryCount    Int?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  supplier       StoreSupplier?          @relation(fields: [supplierId], references: [id], onDelete: SetNull)
+  programmeLinks StoreProductProgramme[]
+  creditRequests StoreCreditRequest[]
+}
+
+model StoreProductProgramme {
+  id                   String   @id @default(cuid())
+  productId            String
+  programmeId          String
+  creditTerms          String?
+  depositRateBps       Int      @default(1000)
+  installmentCount     Int      @default(6)
+  installmentFrequency String   @default("MONTHLY")
+  flatInterestRateBps  Int      @default(0)
+  gracePeriodDays      Int      @default(30)
+  createdAt            DateTime @default(now())
+
+  product       StoreProduct                 @relation(fields: [productId], references: [id], onDelete: Cascade)
+  programme     Programme                    @relation(fields: [programmeId], references: [id], onDelete: Cascade)
+  defaultAgents StoreProductProgrammeAgent[]
+
+  @@unique([productId, programmeId])
+}
+
+model StoreProductProgrammeAgent {
+  id                 String   @id @default(cuid())
+  productProgrammeId String
+  villageAgentId     String
+  isPrimary          Boolean  @default(false)
+  createdAt          DateTime @default(now())
+
+  productProgramme StoreProductProgramme @relation(fields: [productProgrammeId], references: [id], onDelete: Cascade)
+  villageAgent     VillageAgent          @relation(fields: [villageAgentId], references: [id], onDelete: Cascade)
+
+  @@unique([productProgrammeId, villageAgentId])
+}
+
+model StoreCreditRequest {
+  id                   String    @id @default(cuid())
+  productId            String
+  programmeId          String
+  requesterUserId      String?
+  distributionAgentId  String?
+  financierPartnerId   String?
+  customerName         String
+  customerEmail        String
+  phoneNumber          String
+  county               String?
+  groupName            String?
+  quantity             Int       @default(1)
+  requestedAmountCents Int
+  depositCents         Int       @default(0)
+  financedAmountCents  Int       @default(0)
+  commissionRateBps    Int       @default(500)
+  commissionCents      Int       @default(0)
+  repaymentStatus      String    @default("NOT_FINANCED")
+  status               String    @default("PENDING")
+  notes                String?
+  reviewNotes          String?
+  financedAt           DateTime?
+  fulfilledAt          DateTime?
+  paidAt               DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  product           StoreProduct             @relation(fields: [productId], references: [id], onDelete: Cascade)
+  programme         Programme                @relation(fields: [programmeId], references: [id], onDelete: Cascade)
+  requester         User?                    @relation("StoreCreditRequester", fields: [requesterUserId], references: [id], onDelete: SetNull)
+  distributionAgent VillageAgent?            @relation("StoreCreditDistributor", fields: [distributionAgentId], references: [id], onDelete: SetNull)
+  financierPartner  Partner?                 @relation("StoreCreditFinancier", fields: [financierPartnerId], references: [id], onDelete: SetNull)
+  installments      StoreCreditInstallment[]
+  repayments        StoreCreditRepayment[]
+}
+
+model StoreCreditInstallment {
+  id             String    @id @default(cuid())
+  requestId      String
+  sequence       Int
+  dueDate        DateTime
+  principalCents Int
+  interestCents  Int
+  totalDueCents  Int
+  paidCents      Int       @default(0)
+  status         String    @default("PENDING")
+  paidAt         DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  request    StoreCreditRequest     @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  repayments StoreCreditRepayment[]
+
+  @@unique([requestId, sequence])
+  @@index([dueDate, status])
+}
+
+model StoreCreditRepayment {
+  id                String   @id @default(cuid())
+  requestId         String
+  installmentId     String?
+  amountCents       Int
+  source            String   @default("MANUAL")
+  provider          String?
+  providerReference String?
+  recordedByUserId  String?
+  notes             String?
+  receivedAt        DateTime @default(now())
+  createdAt         DateTime @default(now())
+
+  request     StoreCreditRequest      @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  installment StoreCreditInstallment? @relation(fields: [installmentId], references: [id], onDelete: SetNull)
+}
+
+model AgentBookingRequest {
+  id             String    @id @default(cuid())
+  villageAgentId String?
+  programmeId    String?
+  serviceType    String
+  preferredDate  DateTime?
+  customerName   String
+  customerEmail  String
+  phoneNumber    String
+  county         String?
+  groupName      String?
+  notes          String?
+  status         String    @default("PENDING")
+  reviewNotes    String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  villageAgent VillageAgent? @relation(fields: [villageAgentId], references: [id], onDelete: SetNull)
+  programme    Programme?    @relation(fields: [programmeId], references: [id], onDelete: SetNull)
+}
+
+model Group {
+  id                  String   @id @default(cuid())
+  programmeId         String?
+  villageAgentId      String?
+  name                String
+  code                String   @unique
+  phase               String
+  county              String
+  subCounty           String?
+  location            String?
+  composition         String?
+  objective           String?
+  contactPersonName   String?
+  contactPhone        String?
+  onboardingFeedback  String?
+  sourceSystem        String?
+  sourceReference     String?
+  meetingDay          String?
+  gpsLatitude         Float?
+  gpsLongitude        Float?
+  gpsRadiusMeters     Int      @default(50)
+  shareValueCents     Int      @default(50000)
+  maxSharesPerMemberPerMeeting Int @default(10)
+  constitutionVersion String   @default("IWLSGS-1.0")
+  cycleNumber         Int      @default(1)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
+
+  programme      Programme?       @relation(fields: [programmeId], references: [id])
+  programmeLinks ProgrammeGroup[]
+  villageAgent   VillageAgent?    @relation(fields: [villageAgentId], references: [id])
+  userAccounts   User[]
+  members        Member[]
+  meetings       Meeting[]
+  fundAccounts   FundAccount[]
+  ledgerEntries  LedgerEntry[]
+  votes          Vote[]
+  creditScores   CreditScore[]
+  offlineDevices OfflineDevice[]
+}
+
+model Member {
+  id                  String    @id @default(cuid())
+  groupId             String
+  fullName            String
+  nationalIdHash      String?
+  phone               String
+  role                String    @default("MEMBER")
+  kycStatus           String    @default("PENDING")
+  status              String    @default("ACTIVE")
+  pinHash             String?
+  pinSetAt            DateTime?
+  pinUpdatedAt        DateTime?
+  currentOtpHash      String?
+  currentOtpIssuedAt  DateTime?
+  currentOtpExpiresAt DateTime?
+  joinedAt            DateTime  @default(now())
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  group          Group                  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  userAccounts   User[]
+  attendance     Attendance[]
+  ledgerEntries  LedgerEntry[]
+  keySubmissions MeetingKeySubmission[]
+  pinDeliveries  MemberPinDelivery[]
+}
+
+model Meeting {
+  id               String    @id @default(cuid())
+  groupId          String
+  title            String
+  status           String
+  scheduledAt      DateTime
+  openedAt         DateTime?
+  closedAt         DateTime?
+  unlockStatus     String    @default("PENDING")
+  gpsCompliant     Boolean   @default(false)
+  transactionTotal Int       @default(0)
+  minutes          String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  group          Group                  @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  steps          MeetingStepRecord[]
+  attendance     Attendance[]
+  keySubmissions MeetingKeySubmission[]
+  ledgerEntries  LedgerEntry[]
+  votes          Vote[]
+}
+
+model MeetingKeySubmission {
+  id                String    @id @default(cuid())
+  meetingId         String
+  memberId          String
+  capturedByUserId  String?
+  deviceId          String?
+  capturedOfflineAt DateTime?
+  credentialType    String    @default("DEFAULT_PIN")
+  verifiedAt        DateTime  @default(now())
+  createdAt         DateTime  @default(now())
+
+  meeting        Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  member         Member  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+  capturedByUser User?   @relation("MeetingKeyCapturedBy", fields: [capturedByUserId], references: [id], onDelete: SetNull)
+
+  @@unique([meetingId, memberId])
+}
+
+model MemberPinDelivery {
+  id                String    @id @default(cuid())
+  memberId          String
+  requestedByUserId String?
+  provider          String    @default("AFRICAS_TALKING")
+  channel           String    @default("SMS")
+  purpose           String    @default("DEFAULT_PIN")
+  phone             String
+  status            String    @default("QUEUED")
+  messagePreview    String
+  messageCiphertext String
+  sentAt            DateTime?
+  createdAt         DateTime  @default(now())
+
+  member Member @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@index([memberId, createdAt])
+  @@index([status, createdAt])
+}
+
+model MeetingStepRecord {
+  id          String    @id @default(cuid())
+  meetingId   String
+  step        String
+  name        String
+  status      String    @default("PENDING")
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+
+  @@unique([meetingId, step])
+}
+
+model Attendance {
+  id         String   @id @default(cuid())
+  meetingId  String
+  memberId   String
+  status     String
+  recordedAt DateTime @default(now())
+
+  meeting Meeting @relation(fields: [meetingId], references: [id], onDelete: Cascade)
+  member  Member  @relation(fields: [memberId], references: [id], onDelete: Cascade)
+
+  @@unique([meetingId, memberId])
+}
+
+model FundAccount {
+  id           String   @id @default(cuid())
+  groupId      String
+  type         String
+  balanceCents Int      @default(0)
+  currency     String   @default("KES")
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  group         Group         @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  ledgerEntries LedgerEntry[]
+
+  @@unique([groupId, type])
+}
+
+model LedgerEntry {
+  id                String   @id @default(cuid())
+  groupId           String
+  memberId          String?
+  meetingId         String?
+  fundAccountId     String?
+  type              String
+  amountCents       Int
+  currency          String   @default("KES")
+  direction         String
+  description       String
+  signature         String
+  externalReference String?
+  clientRequestId   String?  @unique
+  createdAt         DateTime @default(now())
+
+  group       Group        @relation(fields: [groupId], references: [id], onDelete: Restrict)
+  member      Member?      @relation(fields: [memberId], references: [id], onDelete: SetNull)
+  meeting     Meeting?     @relation(fields: [meetingId], references: [id], onDelete: SetNull)
+  fundAccount FundAccount? @relation(fields: [fundAccountId], references: [id], onDelete: SetNull)
+}
+
+model OfflineDevice {
+  id             String    @id @default(cuid())
+  groupId        String
+  userId         String?
+  deviceId       String
+  status         String    @default("ACTIVE")
+  cacheExpiresAt DateTime
+  lastPreparedAt DateTime?
+  lastSyncedAt   DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user  User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@unique([groupId, deviceId])
+  @@index([status, cacheExpiresAt])
+}
+
+model Vote {
+  id             String   @id @default(cuid())
+  groupId        String
+  meetingId      String?
+  resolutionType String
+  motion         String
+  result         String
+  quorumRequired Int
+  yesCount       Int
+  noCount        Int
+  abstainCount   Int
+  totalEligible  Int
+  hash           String
+  createdAt      DateTime @default(now())
+
+  group   Group    @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  meeting Meeting? @relation(fields: [meetingId], references: [id], onDelete: SetNull)
+}
+
+model CreditScore {
+  id            String   @id @default(cuid())
+  groupId       String
+  score         Int
+  breakdownJson String
+  computedAt    DateTime @default(now())
+
+  group Group @relation(fields: [groupId], references: [id], onDelete: Cascade)
+}
+
+model AuditEvent {
+  id          String   @id @default(cuid())
+  actorUserId String?
+  entityType  String
+  entityId    String
+  type        String
+  payloadJson String
+  hash        String
+  createdAt   DateTime @default(now())
+
+  actor User? @relation(fields: [actorUserId], references: [id], onDelete: SetNull)
+}
+
+model IntegrationConfig {
+  id                   String    @id @default(cuid())
+  provider             String    @unique
+  displayName          String
+  mode                 String    @default("SANDBOX")
+  enabled              Boolean   @default(true)
+  requiredEnvJson      String
+  credentialsJson      String?
+  credentialsUpdatedAt DateTime?
+  callbackUrl          String?
+  lastCheckedAt        DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+}
+
+model IntelliAuditStandardReference {
+  id            String    @id @default(cuid())
+  key           String    @unique
+  name          String
+  category      String
+  jurisdiction  String?
+  sourceUrl     String
+  summary       String
+  effectiveDate DateTime?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+}
+
+model IntelliAuditEvidenceSource {
+  id                  String    @id @default(cuid())
+  name                String
+  sourceType          String
+  provider            String?
+  status              String    @default("ACTIVE")
+  scopeType           String    @default("GLOBAL")
+  scopeId             String?
+  connectorConfigJson String?
+  lastSyncedAt        DateTime?
+  createdByUserId     String?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  documents IntelliAuditSourceDocument[]
+  records   IntelliAuditExtractedRecord[]
+  syncRuns  IntelliAuditConnectorSyncRun[]
+}
+
+model IntelliAuditSourceDocument {
+  id               String   @id @default(cuid())
+  sourceId         String
+  scopeType        String   @default("GLOBAL")
+  scopeId          String?
+  title            String
+  fileName         String?
+  mimeType         String?
+  sourceUri        String?
+  contentHash      String
+  extractionStatus String   @default("PENDING")
+  rawMetadataJson  String
+  uploadedByUserId String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  source           IntelliAuditEvidenceSource         @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+  records          IntelliAuditExtractedRecord[]
+  reportReferences IntelliAuditReportAuditReference[]
+}
+
+model IntelliAuditExtractedRecord {
+  id             String    @id @default(cuid())
+  sourceId       String?
+  documentId     String?
+  recordType     String
+  occurredAt     DateTime?
+  amountCents    Int?
+  currency       String    @default("KES")
+  direction      String?
+  counterparty   String?
+  reference      String?
+  description    String?
+  normalizedJson String
+  hash           String
+  confidence     Float     @default(0.8)
+  status         String    @default("STAGED")
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  source              IntelliAuditEvidenceSource?        @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+  document            IntelliAuditSourceDocument?        @relation(fields: [documentId], references: [id], onDelete: SetNull)
+  reconciliationItems IntelliAuditReconciliationItem[]
+  reportReferences    IntelliAuditReportAuditReference[]
+}
+
+model IntelliAuditConnectorSyncRun {
+  id                  String    @id @default(cuid())
+  sourceId            String
+  provider            String
+  status              String
+  startedAt           DateTime  @default(now())
+  completedAt         DateTime?
+  importedRecordCount Int       @default(0)
+  exceptionCount      Int       @default(0)
+  summaryJson         String
+  actorUserId         String?
+
+  source IntelliAuditEvidenceSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+}
+
+model IntelliAuditReconciliationBatch {
+  id               String    @id @default(cuid())
+  scopeType        String    @default("GLOBAL")
+  scopeId          String?
+  title            String
+  status           String    @default("STAGED")
+  recordCount      Int       @default(0)
+  exceptionCount   Int       @default(0)
+  totalDebitCents  Int       @default(0)
+  totalCreditCents Int       @default(0)
+  createdByUserId  String?
+  approvedByUserId String?
+  approvedAt       DateTime?
+  reviewerNotes    String?
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+
+  items IntelliAuditReconciliationItem[]
+}
+
+model IntelliAuditReconciliationItem {
+  id                String   @id @default(cuid())
+  batchId           String
+  extractedRecordId String?
+  ledgerEntryId     String?
+  matchStatus       String
+  confidence        Float    @default(0.7)
+  exceptionJson     String?
+  reviewerNotes     String?
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+
+  batch           IntelliAuditReconciliationBatch @relation(fields: [batchId], references: [id], onDelete: Cascade)
+  extractedRecord IntelliAuditExtractedRecord?    @relation(fields: [extractedRecordId], references: [id], onDelete: SetNull)
+}
+
+model IntelliAuditConversation {
+  id              String   @id @default(cuid())
+  scopeType       String   @default("GLOBAL")
+  scopeId         String?
+  title           String
+  status          String   @default("ACTIVE")
+  createdByUserId String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  messages IntelliAuditMessage[]
+}
+
+model IntelliAuditMessage {
+  id                    String   @id @default(cuid())
+  conversationId        String
+  role                  String
+  content               String
+  factualDataJson       String
+  assumptionsJson       String
+  observationsJson      String
+  recommendationsJson   String
+  evidenceRefsJson      String
+  unsupportedClaimsJson String
+  createdAt             DateTime @default(now())
+
+  conversation IntelliAuditConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+}
+
+model IntelliAuditFinding {
+  id               String   @id @default(cuid())
+  scopeType        String   @default("GLOBAL")
+  scopeId          String?
+  severity         String
+  category         String
+  title            String
+  observation      String
+  recommendation   String
+  status           String   @default("OPEN")
+  evidenceRefsJson String
+  sourceIdsJson    String
+  createdByUserId  String?
+  reportDraftId    String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+}
+
+model IntelliAuditRecommendation {
+  id               String    @id @default(cuid())
+  findingId        String?
+  scopeType        String    @default("GLOBAL")
+  scopeId          String?
+  title            String
+  action           String
+  priority         String
+  status           String    @default("OPEN")
+  dueDate          DateTime?
+  ownerUserId      String?
+  createdByUserId  String?
+  approvedByUserId String?
+  approvedAt       DateTime?
+  evidenceRefsJson String
+  createdAt        DateTime  @default(now())
+  updatedAt        DateTime  @updatedAt
+}
+
+model IntelliAuditReportDraft {
+  id                 String    @id @default(cuid())
+  scopeType          String    @default("GLOBAL")
+  scopeId            String?
+  templateKey        String
+  standard           String
+  title              String
+  status             String    @default("DRAFT")
+  periodStart        DateTime?
+  periodEnd          DateTime?
+  generatedByUserId  String?
+  approvedByUserId   String?
+  approvedAt         DateTime?
+  approvalNotes      String?
+  contentJson        String
+  auditTrailRefsJson String
+  createdAt          DateTime  @default(now())
+  updatedAt          DateTime  @updatedAt
+
+  approvals       IntelliAuditReportApproval[]
+  auditReferences IntelliAuditReportAuditReference[]
+}
+
+model IntelliAuditReportApproval {
+  id            String   @id @default(cuid())
+  reportDraftId String
+  actorUserId   String
+  action        String
+  notes         String?
+  createdAt     DateTime @default(now())
+
+  reportDraft IntelliAuditReportDraft @relation(fields: [reportDraftId], references: [id], onDelete: Cascade)
+}
+
+model IntelliAuditReportAuditReference {
+  id                 String   @id @default(cuid())
+  reportDraftId      String
+  entityType         String
+  entityId           String
+  auditEventId       String?
+  evidenceDocumentId String?
+  extractedRecordId  String?
+  createdAt          DateTime @default(now())
+
+  reportDraft      IntelliAuditReportDraft      @relation(fields: [reportDraftId], references: [id], onDelete: Cascade)
+  evidenceDocument IntelliAuditSourceDocument?  @relation(fields: [evidenceDocumentId], references: [id], onDelete: SetNull)
+  extractedRecord  IntelliAuditExtractedRecord? @relation(fields: [extractedRecordId], references: [id], onDelete: SetNull)
+}
+
+model IntelliAuditOfflineAction {
+  id             String    @id @default(cuid())
+  clientActionId String    @unique
+  userId         String?
+  actionType     String
+  status         String    @default("QUEUED")
+  payloadJson    String
+  createdAt      DateTime  @default(now())
+  syncedAt       DateTime?
+}
+
+model WebhookSubscription {
+  id             String   @id @default(cuid())
+  partnerId      String?
+  url            String
+  eventTypesJson String
+  secretHash     String
+  status         String   @default("ACTIVE")
+  createdAt      DateTime @default(now())
+
+  partner Partner? @relation(fields: [partnerId], references: [id], onDelete: SetNull)
+}
+
+model FtmaImportBatch {
+  id          String   @id @default(cuid())
+  sourceFile  String
+  importedAt  DateTime @default(now())
+  summaryJson String
+}
+
+model FtmaCountyVslaKpi {
+  id                          String    @id @default(cuid())
+  county                      String
+  metricDate                  DateTime?
+  vslaGroupCount              Int
+  membershipCount             Int
+  nhifUptakeRate              Float?
+  externalLoanUptakeRate      Float?
+  actionableMarketingPlanRate Float?
+  savingsCents                BigInt
+  outstandingLoanCents        BigInt
+  socialFundCents             BigInt
+  sourceRowJson               String
+  createdAt                   DateTime  @default(now())
+
+  @@unique([county, metricDate])
+}
+
+model FtmaCountyVslaTrainingMetric {
+  id                           String   @id @default(cuid())
+  county                       String   @unique
+  assessedVslaCount            Int
+  newGroupsCount               Int
+  bdsModulesCount              Int
+  nhifSensitizedCount          Int
+  linkedToMarketCount          Int
+  linkedToFinanceCount         Int
+  marketLinkageCount           Int
+  inputDistributorLinkageCount Int
+  valueAdditionTrainingCount   Int
+  sourceRowJson                String
+  createdAt                    DateTime @default(now())
+}
+
+model FtmaCountyFscKpi {
+  id                           String   @id @default(cuid())
+  county                       String   @unique
+  fscBdsModulesCount           Int
+  actionableBusinessPlanRate   Float?
+  nhifMembershipRate           Float?
+  financialInstitutionLinkages Int
+  marketLinkages               Int
+  inputDistributorLinkages     Int
+  otherTrainings               Int
+  sourceRowJson                String
+  createdAt                    DateTime @default(now())
+}
+
+model FtmaPartnerLinkage {
+  id               String   @id @default(cuid())
+  rowNumber        Int
+  dateText         String?
+  projectOfficer   String?
+  institutionName  String
+  county           String?
+  constituency     String?
+  valueProposition String?
+  capacity         String?
+  linkageType      String?
+  contactName      String?
+  contactPhone     String?
+  sourceRowJson    String
+  createdAt        DateTime @default(now())
+
+  @@unique([rowNumber, institutionName])
+}
