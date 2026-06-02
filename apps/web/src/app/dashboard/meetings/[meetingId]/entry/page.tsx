@@ -781,15 +781,14 @@ export default function MeetingEntryPage({ params }: { params: Promise<{ meeting
                         type="password"
                         value={row.pin}
                       />
-                      <span className={isOffline ? "pill gold" : "pill blue"}>{unlockCredentialLabel}</span>
                     </div>
                   ))}
                   <div className="meeting-entry-offline-cache-note">
                     <strong>{offlinePinCacheCount} offline PINs cached</strong>
                     <span>
                       {isOffline
-                        ? "Offline meeting start accepts saved default PINs only."
-                        : "Online meeting start uses current OTPs. Default PINs are refreshed in the PWA cache for offline use."}
+                        ? "Use saved default PINs to start offline."
+                        : "Use OTPs online. Offline PINs refresh after sync."}
                     </span>
                     {offlinePinCacheUpdatedAt ? <em>Updated {new Date(offlinePinCacheUpdatedAt).toLocaleTimeString()}</em> : null}
                   </div>
@@ -802,7 +801,7 @@ export default function MeetingEntryPage({ params }: { params: Promise<{ meeting
                       OTPs
                     </button>
                     <button className="button secondary" disabled={saving || isOffline} onClick={prepareOfflineCache} type="button">
-                      Refresh offline PINs
+                      Refresh PINs
                     </button>
                   </div>
                 </form>
